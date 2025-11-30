@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Users, Send, FileText, Mic, Image } from 'lucide-react'
-import { LOCAL_URL } from '../api/api';
+// import { LOCAL_URL } from '../api/api';
+import { DEPLOYED_URL } from '../api/api';
 
 export default function GroupSelectorModal({ isOpen, onClose, pageData, attachments }) {
     const [groups, setGroups] = useState([]);
@@ -19,7 +20,7 @@ export default function GroupSelectorModal({ isOpen, onClose, pageData, attachme
         setLoading(true);
         setError(null);
         try {
-            const response = await fetch(`${LOCAL_URL}/api/groups`);
+            const response = await fetch(`${DEPLOYED_URL}/api/groups`);
             const data = await response.json();
             setGroups(data.groups || []);
         } catch (err) {
@@ -64,7 +65,7 @@ export default function GroupSelectorModal({ isOpen, onClose, pageData, attachme
             if (attachments.audio) {
                 formData.append('attachments', attachments.audio);
             }
-            const response = await fetch(`${LOCAL_URL}/api/create-page`, {
+            const response = await fetch(`${DEPLOYED_URL}/api/create-page`, {
                 method: 'POST',
                 body: formData,
             });

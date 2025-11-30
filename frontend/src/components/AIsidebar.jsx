@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Sparkles, Image, Type, Send, Loader2 } from 'lucide-react';
-import { LOCAL_URL } from '../api/api';
+// import { LOCAL_URL } from '../api/api';
+import { DEPLOYED_URL } from '../api/api';
 // AI Sidebar Component
 export const AISidebar = ({ isOpen, onClose }) => {
     const [activeTab, setActiveTab] = useState('text');
@@ -18,7 +19,7 @@ export const AISidebar = ({ isOpen, onClose }) => {
         setTextResponse('');
 
         try {
-            const response = await fetch(`${LOCAL_URL}/api/text`, {
+            const response = await fetch(`${DEPLOYED_URL}/api/text`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
