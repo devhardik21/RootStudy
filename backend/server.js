@@ -29,7 +29,7 @@ app.get('/',(req ,res)=>{
 app.get("/api/groups",GetAllGroups) ;
 app.post("/api/create-page",upload.array("attachments"),CreatePage) ;
 app.post("/api/text",generateText)
-app.post("/api/image",generateImage)
+// app.post("/api/image",generateImage)
 app.listen(PORT,()=>{
     console.log(`The backnend is successfully running on the port ${PORT}`);
     
