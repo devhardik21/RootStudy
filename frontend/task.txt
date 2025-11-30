@@ -1,0 +1,16 @@
+Task :-
+
+using this SDK of TL draw...
+
+Make a working feature where the smartboard will be used by the teacher while teaching in class......
+
+And the teacher would have various features/ actionables over this smartboard..
+
+Right from the basic where they can write , scribble, draw anything....which gets saved per page in svg and sent to student of the class
+
+
+To be able to generate contextual images , texts, posts and videos in YouTube ....any which they want while teaching a topic (use of gen ai mostly to be able to give accessibility of internet over the tl draw page as an abstraction) .....
+
+The teacher can also attach any pdf or voice assistance in the respective page which would then be send to the students.....
+
+All of it gets saved as a page in svg format and is stored in the db
