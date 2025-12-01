@@ -10,33 +10,32 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_SECRET_KEY
 });
 
-const UploadOnCloudinary = async (LocalUrl) => {
+export const UploadOnCloudinary = async (filePathOrBuffer) => {
     try {
-        if (!LocalUrl) {
-            console.log("No local url found");
-
-            return null;
+        if (!filePathOrBuffer) {
+            throw new Error("No file provided");
         }
 
-        // uploading the file on cloudinary 
-        const response = await cloudinary.uploader.upload(LocalUrl, {
-            resource_type: "auto"
-        })
+        let uploadOptions = {
+            resource_type: "auto",
+            folder: "ai-generated-images"
+        };
 
-        console.log('Uploaded on cloudinary successfully', response.url);
+        // Check if it's a Buffer (binary data) or file path (string)
+        if (Buffer.isBuffer(filePathOrBuffer)) {
+            // Convert Buffer to base64 data URI
+            const base64Image = `data:image/png;base64,${filePathOrBuffer.toString('base64')}`;
 
-        // fs.unlinkSync(LocalUrl) ;
-        return response.url;
-
+            const result = await cloudinary.uploader.upload(base64Image, uploadOptions);
+            return result;
+        } else {
+            // It's a file path (your existing logic)
+            const result = await cloudinary.uploader.upload(filePathOrBuffer, uploadOptions);
+            return result;
+        }
 
     } catch (error) {
-        console.log("directly to the catch block of the cloudinary");
-        console.log(error);
-
-        console.log("file will get deleted from the local");
-        // fs.unlinkSync(LocalUrl);
+        console.error("Cloudinary upload error:", error);
+        return null;
     }
-
-}
-
-export { UploadOnCloudinary };
+};

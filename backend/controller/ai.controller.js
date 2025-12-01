@@ -1,6 +1,8 @@
 // backend/ai.controller.js
 import fetch from "node-fetch";
 import dotenv from "dotenv";
+import { InferenceClient } from "@huggingface/inference";
+import { UploadOnCloudinary } from "../utils/cloudinary.utils.js";
 dotenv.config();
 
 const API_KEY = process.env.AI_API_KEY;
@@ -42,72 +44,64 @@ export const generateText = async (req, res) => {
 };
 
 
+export async function generateImage(req, res) {
+    try {
+        const { prompt } = req.body;
 
-// export const generateImage = async (req, res) => {
-//     try {
-//         const { prompt } = req.body;
-//         if (!prompt) {
-//             return res.status(400).json({ error: "Prompt is required" });
-//         }
+        if (!prompt || typeof prompt !== "string") {
+            return res.status(400).json({
+                error: "Prompt must be a non-empty string."
+            });
+        }
 
-//         console.log("API called with prompt:", prompt);
+        if (!process.env.HF_API_KEY) {
+            return res.status(500).json({
+                error: "Server configuration error."
+            });
+        }
 
-//         // Make sure API_KEY is defined (from environment variables)
-//         const API_KEY = process.env.AI_API_KEY;
-//         if (!API_KEY) {
-//             return res.status(500).json({ error: "API key not configured" });
-//         }
+        const client = new InferenceClient(process.env.HF_API_KEY);
 
-//      try {
-//            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-//                method: "POST",
-//                headers: {
-//                    "Authorization": `Bearer ${API_KEY}`,
-//                    "Content-Type": "application/json",
-//                },
-//                body: JSON.stringify({
-//                    model: "meta/ray-3.0-11b",
-//                    messages: [
-//                        {
-//                            role: "user",
-//                            content: [
-//                                {
-//                                    type: "text",
-//                                    text: `Generate an image: ${prompt}`
-//                                }
-//                            ]
-//                        }
-//                    ]
-//                })
-//            });
-   
-//      } catch (error) {
-//         console.log(error);
-        
-//         res.status(500).json({
-//             err : `${error}`
-//         })
-        
-//      }
-//         if (!response.ok) {
-//             throw new Error(`API request failed with status ${response.status}`);
-//         }
+        // Step 1: Generate image from HuggingFace
+        const blob = await client.textToImage({
+            model: "black-forest-labs/FLUX.1-schnell",
+            inputs: prompt,
+            parameters: {
+                num_inference_steps: 4,
+                guidance_scale: 0
+            },
+        });
 
-//         const json = await response.json();
-//         console.log("Full Response:", JSON.stringify(json, null, 2));
+        if (!blob) {
+            return res.status(500).json({
+                error: "Image generation failed."
+            });
+        }
 
-//         // Check the actual response structure from OpenRouter docs
-//         const imageUrl = json?.choices?.[0]?.message?.content?.[0]?.image_url?.url;
+        // Step 2: Convert Blob → ArrayBuffer → Buffer
+        const arrayBuffer = await blob.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
 
-//         if (!imageUrl) {
-//             console.error("No image URL found in response:", json);
-//             return res.status(500).json({ error: "No image generated" });
-//         }
+        // Step 3: Upload to Cloudinary
+        const cloudinaryResult = await UploadOnCloudinary(buffer);
 
-//         res.json({ success: true, image: imageUrl });
+        if (!cloudinaryResult) {
+            return res.status(500).json({
+                error: "Failed to upload image to Cloudinary."
+            });
+        }
 
-//     } catch (error) {
-//         console.error("Error in generateImage:", error);
-//         res.status(500).json({ error: error.message });
-//     }
-// };
+        // Step 4: Send response with Cloudinary URL
+        return res.status(200).json({
+            message: "Image generated and uploaded successfully",
+            imageUrl: cloudinaryResult.secure_url,
+            publicId: cloudinaryResult.public_id
+        });
+
+    } catch (error) {
+        console.error("Image Generation Error:", error.message);
+        return res.status(500).json({
+            error: `Image generation failed: ${error.message}`
+        });
+    }
+}
