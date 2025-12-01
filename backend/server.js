@@ -5,7 +5,7 @@ import { ConnectDB } from "./config/db.js";
 import { GetAllGroups } from "./controller/group.controller.js";
 import { CreatePage } from "./controller/page.controller.js";
 import { upload } from "./middleware/multer.middleware.js";
-import { generateText , generateImage} from "./controller/ai.controller.js";
+import { generateText , generateImage, suggestYouTubeVideos} from "./controller/ai.controller.js";
 // import { updateDbWithDummyData } from "./services/updateDb.services.js";
 dotenv.config() ; 
 
@@ -30,6 +30,7 @@ app.get("/api/groups",GetAllGroups) ;
 app.post("/api/create-page",upload.array("attachments"),CreatePage) ;
 app.post("/api/text",generateText)
 app.post("/api/image",generateImage)
+app.post("/api/youtube",suggestYouTubeVideos)
 app.listen(PORT,()=>{
     console.log(`The backnend is successfully running on the port ${PORT}`);
     
