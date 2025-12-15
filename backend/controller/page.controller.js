@@ -18,7 +18,8 @@ const CreatePage = async (req, res) => {
             'audio/aac',
             'audio/ogg',
             'audio/flac',
-            'audio/mp4'
+            'audio/mp4',
+            'audio/webm',
           ];
 
 
@@ -36,7 +37,8 @@ const CreatePage = async (req, res) => {
                     type = 'unknown';
                 }
 
-                const url = await UploadOnCloudinary(file.path);
+                let url = await UploadOnCloudinary(file.path);
+                url = url.secure_url ; 
 
                 attachments.push({ type, url });
             }

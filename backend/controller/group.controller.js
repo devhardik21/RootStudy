@@ -2,7 +2,7 @@ import { StudentGroup } from "../models/group.model.js";
 
 const GetAllGroups = async (req , res) => {
     try {
-        const groups = await StudentGroup.find()
+        const groups = await StudentGroup.find().populate("svgAttachments")
 
         return res.status(200).json({
             message : "List of all the groups",

@@ -54,7 +54,7 @@ export async function generateImage(req, res) {
                 error: "Prompt must be a non-empty string."
             });
         }
-
+        
         if (!process.env.HF_API_KEY) {
             return res.status(500).json({
                 error: "Server configuration error."

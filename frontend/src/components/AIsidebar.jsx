@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Sparkles, Image, Type, Send, Loader2, Youtube } from 'lucide-react';
 import { DEPLOYED_URL } from '../api/api';
+import showdown from 'showdown';
 
 export const AISidebar = ({ isOpen, onClose }) => {
     const [activeTab, setActiveTab] = useState('text');
@@ -8,6 +9,7 @@ export const AISidebar = ({ isOpen, onClose }) => {
     const [imagePrompt, setImagePrompt] = useState('');
     const [youtubePrompt, setYoutubePrompt] = useState('');
     const [textResponse, setTextResponse] = useState('');
+    const [textResponseHtml, setTextResponseHtml] = useState('');
     const [imageUrl, setImageUrl] = useState('');
     const [videos, setVideos] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -16,6 +18,7 @@ export const AISidebar = ({ isOpen, onClose }) => {
         if (!textPrompt.trim()) return;
         setIsLoading(true);
         setTextResponse('');
+        setTextResponseHtml('');
 
         try {
             const response = await fetch(`${DEPLOYED_URL}/api/text`, {
@@ -24,9 +27,13 @@ export const AISidebar = ({ isOpen, onClose }) => {
                 body: JSON.stringify({ prompt: textPrompt })
             });
             const data = await response.json();
-            setTextResponse(data.text || 'No response from AI.');
+            const text = data.text || 'No response from AI.';
+            setTextResponse(text);
+            const converter = new showdown.Converter();
+            setTextResponseHtml(converter.makeHtml(text));
         } catch (error) {
             setTextResponse('Error fetching AI response.');
+            setTextResponseHtml('<p>Error fetching AI response.</p>');
         } finally {
             setIsLoading(false);
         }
@@ -74,9 +81,8 @@ export const AISidebar = ({ isOpen, onClose }) => {
 
     return (
         <div
-            className={`fixed top-0 right-0 h-full w-96 bg-slate-800 shadow-2xl transform transition-transform duration-300 ease-in-out z-9999 ${
-                isOpen ? 'translate-x-0' : 'translate-x-full'
-            }`}
+            className={`fixed top-0 right-0 h-full w-96 bg-slate-800 shadow-2xl transform transition-transform duration-300 ease-in-out z-9999 ${isOpen ? 'translate-x-0' : 'translate-x-full'
+                }`}
         >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-slate-700">
@@ -96,33 +102,30 @@ export const AISidebar = ({ isOpen, onClose }) => {
             <div className="flex border-b border-slate-700">
                 <button
                     onClick={() => setActiveTab('text')}
-                    className={`flex-1 flex items-center justify-center gap-2 p-3 transition-colors ${
-                        activeTab === 'text'
+                    className={`flex-1 flex items-center justify-center gap-2 p-3 transition-colors ${activeTab === 'text'
                             ? 'bg-slate-700 text-white border-b-2 border-green-400'
                             : 'text-gray-400 hover:text-white'
-                    }`}
+                        }`}
                 >
                     <Type className="w-4 h-4" />
                     Text
                 </button>
                 <button
                     onClick={() => setActiveTab('image')}
-                    className={`flex-1 flex items-center justify-center gap-2 p-3 transition-colors ${
-                        activeTab === 'image'
+                    className={`flex-1 flex items-center justify-center gap-2 p-3 transition-colors ${activeTab === 'image'
                             ? 'bg-slate-700 text-white border-b-2 border-green-400'
                             : 'text-gray-400 hover:text-white'
-                    }`}
+                        }`}
                 >
                     <Image className="w-4 h-4" />
                     Image
                 </button>
                 <button
                     onClick={() => setActiveTab('youtube')}
-                    className={`flex-1 flex items-center justify-center gap-2 p-3 transition-colors ${
-                        activeTab === 'youtube'
+                    className={`flex-1 flex items-center justify-center gap-2 p-3 transition-colors ${activeTab === 'youtube'
                             ? 'bg-slate-700 text-white border-b-2 border-green-400'
                             : 'text-gray-400 hover:text-white'
-                    }`}
+                        }`}
                 >
                     <Youtube className="w-4 h-4" />
                     Videos
@@ -136,6 +139,7 @@ export const AISidebar = ({ isOpen, onClose }) => {
                         prompt={textPrompt}
                         setPrompt={setTextPrompt}
                         response={textResponse}
+                        responseHtml={textResponseHtml}
                         isLoading={isLoading}
                         onGenerate={handleTextGenerate}
                     />
@@ -162,7 +166,7 @@ export const AISidebar = ({ isOpen, onClose }) => {
 };
 
 // Text Generation Tab Component
-const TextGenerationTab = ({ prompt, setPrompt, response, isLoading, onGenerate }) => {
+const TextGenerationTab = ({ prompt, setPrompt, response, responseHtml, isLoading, onGenerate }) => {
     return (
         <div className="space-y-4">
             <div>
@@ -196,13 +200,13 @@ const TextGenerationTab = ({ prompt, setPrompt, response, isLoading, onGenerate 
                 )}
             </button>
 
-            {response && (
+            {responseHtml && (
                 <div className="mt-4 p-4 bg-slate-700 rounded-lg border border-slate-600">
                     <h3 className="text-white font-medium mb-2 flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-yellow-400" />
                         AI Response
                     </h3>
-                    <p className="text-gray-300 whitespace-pre-wrap">{response}</p>
+                    <div className="text-gray-300 whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: responseHtml }} />
                 </div>
             )}
         </div>
@@ -315,8 +319,8 @@ const YoutubeTab = ({ prompt, setPrompt, videos, isLoading, onSearch }) => {
                             key={video.videoId}
                             className="bg-slate-700 rounded-lg overflow-hidden border border-slate-600 hover:border-red-500 transition-colors"
                         >
-                            
-                               <a href={video.videoUrl}
+
+                            <a href={video.videoUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="block"

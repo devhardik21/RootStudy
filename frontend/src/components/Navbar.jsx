@@ -1,19 +1,29 @@
 import React from 'react'
-import { AppWindow, Stars ,Sparkles } from 'lucide-react'
+import { AppWindow, Stars ,Sparkles , LucideSend, Send } from 'lucide-react'
 import { useState } from 'react';
 import { AISidebar } from './AIsidebar';
+import { useNavigate } from 'react-router-dom';
 const Navbar = () => {
+    const navigate = useNavigate() ; 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     return (
         <>
             <div className="flex p-2 justify-between">
                 <div className="flex">
-                    <AppWindow color='white'></AppWindow>
-                    <h1 className="font-bold ml-2">
-                        <span className="text-green-400">Root</span>
-                        <span className="text-white">Study</span>
-                    </h1>
+                    <div className="flex">
+                        <AppWindow color='white'></AppWindow>
+                        <h1 className="font-bold ml-2">
+                            <span className="text-green-400">Root</span>
+                            <span className="text-white">Study</span>
+                        </h1>
+                    </div>
+                    <div className="flex bg-green-600 p-1 rounded-2xl ml-8 justify-center align-center" onClick={()=>{
+                        navigate('/groups')
+                    }}>
+                        <Send color='white' size={20} className='mr-0.5'></Send>
+                        <span className='text-black font-bold text-sm'>Group</span>
+                    </div>
                 </div>
                 <button
                     onClick={() => setIsSidebarOpen(true)}

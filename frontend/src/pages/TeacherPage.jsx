@@ -139,7 +139,7 @@ function PdfUploadButton({ onPdfUpload }) {
                 typeName: 'asset',
                 props: {
                     name: 'pdf-icon.png',
-                    src: '/pdf.png',
+                    src: '/pdf-icon.png',
                     w: 80,
                     h: 80,
                     mimeType: 'image/png',
