@@ -11,7 +11,12 @@ const API_KEY = process.env.AI_API_KEY;
 
 export const generateText = async (req, res) => {
     try {
+        
+        
         const { prompt } = req.body;
+
+        console.log('generate fn called');
+        console.log(`prompt is : ${prompt}`);
 
         if (!prompt) {
             return res.status(400).json({ error: "Prompt is required" });
@@ -24,8 +29,7 @@ export const generateText = async (req, res) => {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                model: "x-ai/grok-4.1-fast:free",
-                reasoning: { enabled: true },
+                model: "allenai/olmo-3.1-32b-think:free",
                 messages: [
                     { role: "user", content: prompt }
                 ]
@@ -33,6 +37,9 @@ export const generateText = async (req, res) => {
         });
 
         const data = await response.json();
+
+        console.log(data);
+        
 
         res.json({
             text: data?.choices?.[0]?.message?.content || "No response generated."

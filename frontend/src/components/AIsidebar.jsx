@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Sparkles, Image, Type, Send, Loader2, Youtube } from 'lucide-react';
 import { DEPLOYED_URL } from '../api/api';
+import { LOCAL_URL } from '../api/api';
 import showdown from 'showdown';
 
 export const AISidebar = ({ isOpen, onClose }) => {
@@ -21,7 +22,7 @@ export const AISidebar = ({ isOpen, onClose }) => {
         setTextResponseHtml('');
 
         try {
-            const response = await fetch(`${DEPLOYED_URL}/api/text`, {
+            const response = await fetch(`${LOCAL_URL}/api/text`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ prompt: textPrompt })

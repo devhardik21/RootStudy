@@ -23,6 +23,9 @@ app.get('/',(req ,res)=>{
     res.send(`Backend of RootStudy`) ; 
 })
 
+console.log('server file running');
+
+
 // updateDbWithDummyData()
 
 // to get the list of all the groups

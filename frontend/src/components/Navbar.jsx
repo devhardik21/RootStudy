@@ -12,13 +12,9 @@ const Navbar = () => {
             <div className="flex p-2 justify-between">
                 <div className="flex">
                     <div className="flex">
-                        <AppWindow color='white'></AppWindow>
-                        <h1 className="font-bold ml-2">
-                            <span className="text-green-400">Root</span>
-                            <span className="text-white">Study</span>
-                        </h1>
+                        <img src='/rootvestors-logo.png' className='w-full h-10'></img>
                     </div>
-                    <div className="flex bg-green-600 p-1 rounded-2xl ml-8 justify-center align-center" onClick={()=>{
+                    <div className="flex bg-green-600 p-1 rounded-2xl ml-8 justify-center align-center mt-1" onClick={()=>{
                         navigate('/groups')
                     }}>
                         <Send color='white' size={20} className='mr-0.5'></Send>
