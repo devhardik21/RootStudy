@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, Users, Send, FileText, Mic, Image } from 'lucide-react'
-// import { LOCAL_URL } from '../api/api';
 import { DEPLOYED_URL, LOCAL_URL } from '../api/api';
 
-export default function GroupSelectorModal({ isOpen, onClose, pageData, attachments }) {
+export default function GroupSelectorModal({ isOpen, onClose, pageData, attachments, transcription }) {
     const [groups, setGroups] = useState([]);
     const [selectedGroups, setSelectedGroups] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -48,15 +47,22 @@ export default function GroupSelectorModal({ isOpen, onClose, pageData, attachme
         try {
             const formData = new FormData();
 
-            // Add the page data - ensure pageImage is SVG
-            const pageImage = pageData.pageImage || '';
-            if (!pageImage.includes('<svg') || !pageImage.includes('</svg>')) {
-                throw new Error('Page image must be a valid SVG');
+            // Add page data
+            formData.append('pageName', pageData.pageName || 'Untitled Page');
+            formData.append('canvasData', JSON.stringify(pageData.canvasData));
+            formData.append('sentGroups', JSON.stringify(selectedGroups));
+
+            // Add transcription if available
+            if (transcription) {
+                formData.append('transcription', transcription);
             }
 
-            formData.append('pageName', pageData.pageName || 'Untitled Page');
-            formData.append('pageImage', pageImage);
-            formData.append('sentGroups', JSON.stringify(selectedGroups));
+            // Add preview image
+            if (pageData.imageBlob) {
+                formData.append('pageImage', pageData.imageBlob, 'preview.png');
+            } else {
+                throw new Error('Preview image is required');
+            }
 
             // Add file attachments
             if (attachments.pdf) {
@@ -65,6 +71,7 @@ export default function GroupSelectorModal({ isOpen, onClose, pageData, attachme
             if (attachments.audio) {
                 formData.append('attachments', attachments.audio);
             }
+
             const response = await fetch(`${LOCAL_URL}/api/create-page`, {
                 method: 'POST',
                 body: formData,
@@ -105,8 +112,14 @@ export default function GroupSelectorModal({ isOpen, onClose, pageData, attachme
                         <div className="flex items-center gap-4 mt-3 flex-wrap">
                             <div className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-lg">
                                 <Image className="w-4 h-4 text-gray-600" />
-                                <span className="text-sm text-gray-700">SVG Drawing</span>
+                                <span className="text-sm text-gray-700">Canvas Drawing</span>
                             </div>
+                            {transcription && (
+                                <div className="flex items-center gap-2 bg-purple-50 px-3 py-1 rounded-lg">
+                                    <Mic className="w-4 h-4 text-purple-600" />
+                                    <span className="text-sm text-purple-700">Transcription</span>
+                                </div>
+                            )}
                             {attachments.pdf && (
                                 <div className="flex items-center gap-2 bg-blue-50 px-3 py-1 rounded-lg">
                                     <FileText className="w-4 h-4 text-blue-600" />
@@ -219,7 +232,7 @@ export default function GroupSelectorModal({ isOpen, onClose, pageData, attachme
                                 {selectedGroups.length} group{selectedGroups.length !== 1 ? 's' : ''} selected
                             </span>
                             <span className="text-xs text-gray-500 mt-1">
-                                Includes: {['SVG Drawing', attachments.pdf && 'PDF', attachments.audio && 'Audio'].filter(Boolean).join(', ')}
+                                Includes: {['Canvas Drawing', transcription && 'Transcription', attachments.pdf && 'PDF', attachments.audio && 'Audio'].filter(Boolean).join(', ')}
                             </span>
                         </div>
                         <button

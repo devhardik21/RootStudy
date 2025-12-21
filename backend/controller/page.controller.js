@@ -4,9 +4,9 @@ import { StudentGroup } from '../models/group.model.js'
 
 const CreatePage = async (req, res) => {
     try {
-        const { pageName, pageImage, sentGroups } = req.body;
+        const { pageName, canvasData, transcription, sentGroups } = req.body;
         let attachments = [];
-        let groups = sentGroups ;
+        let groups = sentGroups;
 
         if (typeof groups === "string") {
             groups = JSON.parse(groups);
@@ -20,11 +20,27 @@ const CreatePage = async (req, res) => {
             'audio/flac',
             'audio/mp4',
             'audio/webm',
-          ];
+        ];
 
+        // Find the preview image file (separate from PDF/audio attachments)
+        let pageImageUrl = '';
+        const imageFile = req.files?.find(f => f.fieldname === 'pageImage');
 
+        if (imageFile) {
+            const uploadResult = await UploadOnCloudinary(imageFile.path);
+            pageImageUrl = uploadResult.secure_url;
+        } else {
+            return res.status(400).json({
+                message: 'Page preview image is required'
+            });
+        }
+
+        // Process other attachments (PDF and audio)
         if (req.files && req.files.length > 0) {
             for (const file of req.files) {
+                // Skip the preview image file
+                if (file.fieldname === 'pageImage') continue;
+
                 let type = '';
 
                 if (file.mimetype.includes('application/pdf')) {
@@ -38,16 +54,24 @@ const CreatePage = async (req, res) => {
                 }
 
                 let url = await UploadOnCloudinary(file.path);
-                url = url.secure_url ; 
+                url = url.secure_url;
 
                 attachments.push({ type, url });
             }
         }
+
+        // Parse canvasData if it's a string
+        const parsedCanvasData = typeof canvasData === 'string'
+            ? JSON.parse(canvasData)
+            : canvasData;
+
         // Create the page document
         const newPage = await Pages.create({
             pageName,
-            pageImage,
-            sentGroups:groups,
+            pageImage: pageImageUrl,
+            canvasData: parsedCanvasData,
+            transcription: transcription || '',
+            sentGroups: groups,
             attachments
         });
 
@@ -72,4 +96,4 @@ const CreatePage = async (req, res) => {
     }
 }
 
-export {CreatePage}
+export { CreatePage }

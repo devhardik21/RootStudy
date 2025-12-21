@@ -18,17 +18,25 @@ const PageSchema = new mongoose.Schema({
     },
     pageImage: {
         required: true,
-        type: String
+        type: String  // Cloudinary URL for preview image (PNG/JPG)
+    },
+    canvasData: {
+        required: true,
+        type: Object  // JSON data from tldraw canvas
+    },
+    transcription: {
+        required: false,
+        type: String  // Transcribed audio text from Web Speech API
     },
     attachments: [AttachmentSchema],
-    sentGroups :[{
-    type : mongoose.Schema.Types.ObjectId , 
-    ref: 'StudentGroup'
+    sentGroups: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'StudentGroup'
     }]
 
 }, { timestamps: true }
 )
 
-const Pages = mongoose.model("Pages",PageSchema)
+const Pages = mongoose.model("Pages", PageSchema)
 
-export { Pages , AttachmentSchema}
+export { Pages, AttachmentSchema }

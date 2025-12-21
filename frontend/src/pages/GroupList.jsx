@@ -42,7 +42,7 @@ export default function GroupsPage() {
     };
 
     return (
-        
+
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex items-center justify-center p-4">
             <div className="w-full max-w-7xl h-[90vh] bg-slate-800/50 backdrop-blur-sm rounded-lg shadow-2xl overflow-hidden flex">
 
@@ -83,8 +83,8 @@ export default function GroupsPage() {
                                     key={group._id}
                                     onClick={() => setSelectedGroup(group)}
                                     className={`flex items-center gap-3 p-4 cursor-pointer transition-colors border-b border-slate-700/30 ${selectedGroup?._id === group._id
-                                            ? 'bg-slate-700/50'
-                                            : 'hover:bg-slate-800/40'
+                                        ? 'bg-slate-700/50'
+                                        : 'hover:bg-slate-800/40'
                                         }`}
                                 >
                                     <img
@@ -130,43 +130,56 @@ export default function GroupsPage() {
 
                             {/* Attachments Content */}
                             <div className="flex-1 overflow-y-auto p-6">
-                                {/* SVG Attachments */}
+                                {/* Canvas Pages */}
                                 {selectedGroup.svgAttachments && selectedGroup.svgAttachments.length > 0 && (
                                     <div className="mb-8">
                                         <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                                             <Paperclip className="w-5 h-5" />
-                                            SVG Attachments ({selectedGroup.svgAttachments.length})
+                                            Canvas Pages ({selectedGroup.svgAttachments.length})
                                         </h3>
                                         <div className="grid grid-cols-1 gap-4">
-                                            {selectedGroup.svgAttachments.map((svg) => (
+                                            {selectedGroup.svgAttachments.map((page) => (
                                                 <div
-                                                    key={svg._id}
+                                                    key={page._id}
                                                     className="bg-slate-900/50 rounded-lg p-4 border border-slate-700/50 hover:border-blue-500/50 transition-colors"
                                                 >
                                                     <div className="flex items-start gap-3 mb-3">
-                                                        <div
-                                                            className="w-16 h-16 flex-shrink-0 bg-slate-800 rounded-lg flex items-center justify-center"
-                                                            dangerouslySetInnerHTML={{ __html: svg.pageImage }}
-                                                        />
                                                         <div className="flex-1 min-w-0">
-                                                            <h4 className="text-white font-medium truncate">{svg.pageName}</h4>
+                                                            <h4 className="text-white font-medium truncate">{page.pageName}</h4>
                                                             <p className="text-slate-400 text-sm">
-                                                                {formatDate(svg.createdAt)}
+                                                                {formatDate(page.createdAt)}
                                                             </p>
                                                         </div>
                                                     </div>
 
-                                                    {/* Full SVG Display */}
+                                                    {/* Canvas Preview Image */}
                                                     <div className="mb-3 p-4 bg-slate-800/50 rounded-lg border border-slate-700/30">
-                                                        <div
-                                                            className="w-full flex items-center justify-center"
-                                                            dangerouslySetInnerHTML={{ __html: svg.pageImage }}
+                                                        <img
+                                                            src={page.pageImage}
+                                                            alt={page.pageName}
+                                                            className="w-full h-auto rounded"
+                                                            onError={(e) => {
+                                                                e.target.src = 'https://via.placeholder.com/400x300?text=Image+Not+Available';
+                                                            }}
                                                         />
                                                     </div>
 
-                                                    {svg.attachments && svg.attachments.length > 0 && (
+                                                    {/* Transcription Display */}
+                                                    {page.transcription && (
+                                                        <div className="mb-3 p-3 bg-purple-900/30 rounded-lg border border-purple-700/30">
+                                                            <div className="flex items-center gap-2 mb-2">
+                                                                <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                                                </svg>
+                                                                <span className="text-purple-300 text-sm font-medium">Transcription</span>
+                                                            </div>
+                                                            <p className="text-slate-300 text-sm">{page.transcription}</p>
+                                                        </div>
+                                                    )}
+
+                                                    {page.attachments && page.attachments.length > 0 && (
                                                         <div className="space-y-2 pt-3 border-t border-slate-700/30">
-                                                            {svg.attachments.map((att, idx) => (
+                                                            {page.attachments.map((att, idx) => (
                                                                 <a
                                                                     key={idx}
                                                                     href={att.url}
