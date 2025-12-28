@@ -82,7 +82,7 @@ export const AISidebar = ({ isOpen, onClose }) => {
 
     return (
         <div
-            className={`fixed top-0 right-0 h-full w-96 bg-slate-800 shadow-2xl transform transition-transform duration-300 ease-in-out z-9999 ${isOpen ? 'translate-x-0' : 'translate-x-full'
+            className={`fixed top-0 right-0 h-full w-96 bg-gradient-to-br from-[#1E1E32] to-[#3C3B65]  shadow-2xl transform transition-transform duration-300 ease-in-out z-9999 ${isOpen ? 'translate-x-0' : 'translate-x-full'
                 }`}
         >
             {/* Header */}

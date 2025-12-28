@@ -1,5 +1,4 @@
 import express from "express"
-import dotenv from "dotenv"
 import cors from "cors"
 import { ConnectDB } from "./config/db.js";
 import { GetAllGroups } from "./controller/group.controller.js";
@@ -7,7 +6,20 @@ import { CreatePage } from "./controller/page.controller.js";
 import { upload } from "./middleware/multer.middleware.js";
 import { generateText, generateImage, suggestYouTubeVideos } from "./controller/ai.controller.js";
 // import { updateDbWithDummyData } from "./services/updateDb.services.js";
-dotenv.config();
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+console.log(__filename);
+console.log(__dirname);
+
+
+dotenv.config({
+    path: path.join(__dirname, ".env"),
+});
 
 const app = express();
 

@@ -1,25 +1,24 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { createBrowserRouter, Route, Router, RouterProvider } from 'react-router-dom'
-import './index.css'
-import App from './App.jsx'
-import TeacherPage from './pages/TeacherPage.jsx'
-import GroupsPage from './pages/GroupList.jsx'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { createHashRouter, RouterProvider } from "react-router-dom";
 
-const routes = createBrowserRouter([
+import "./index.css";
+import TeacherPage from "./pages/TeacherPage.jsx";
+import GroupsPage from "./pages/GroupList.jsx";
+
+const router = createHashRouter([
   {
-  path : "/",
-  element : <TeacherPage></TeacherPage>
-},
+    path: "/",
+    element: <TeacherPage />,
+  },
   {
-  path : "/groups",
-  element : <GroupsPage></GroupsPage>
-},
+    path: "/groups",
+    element: <GroupsPage />,
+  },
+]);
 
-])
-
-createRoot(document.getElementById('root')).render(
+createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <RouterProvider router={routes}></RouterProvider>
-  </StrictMode>,
-)
+    <RouterProvider router={router} />
+  </StrictMode>
+);

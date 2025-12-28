@@ -3,6 +3,7 @@ import { Tldraw, AssetRecordType, useEditor, getSnapshot } from 'tldraw'
 import 'tldraw/tldraw.css'
 import Navbar from '../components/Navbar'
 import GroupSelectorModal from '../components/Modal'
+import { TopicSidebar } from '../components/TopicSidebar'
 
 // VoiceRecorderButton with Web Speech API transcription
 function VoiceRecorderButton({ onRecordingComplete, onTranscriptionUpdate }) {
@@ -96,10 +97,10 @@ function VoiceRecorderButton({ onRecordingComplete, onTranscriptionUpdate }) {
                             editor.updateShape({
                                 id: textShapeId,
                                 type: 'text',
-                                props: { 
-                                ...shape.props,
-                                text: fullText 
-                            }
+                                props: {
+                                    ...shape.props,
+                                    text: fullText
+                                }
                             });
                         }
                     } else {
@@ -109,7 +110,7 @@ function VoiceRecorderButton({ onRecordingComplete, onTranscriptionUpdate }) {
                             type: 'text',
                             x: 100,
                             y: 100,
-                            props: { 
+                            props: {
                                 text: fullText,
                                 size: 'm',
                                 w: 400,
@@ -158,7 +159,7 @@ function VoiceRecorderButton({ onRecordingComplete, onTranscriptionUpdate }) {
     return (
         <div className="flex items-center gap-2">
             <button
-                className={`px-3 py-1 rounded-lg text-white text-sm ${recording ? "bg-red-600" : "bg-green-600"}`}
+                className={`px-3 py-1 rounded-lg text-white text-sm transition-all shadow-md hover:shadow-lg ${recording ? "bg-red-600 hover:bg-red-700" : "bg-emerald-600 hover:bg-emerald-700"}`}
                 onClick={recording ? stopRecording : startRecording}
             >
                 {recording ? "Stop Recording" : "Record Voice"}
@@ -223,7 +224,7 @@ function PdfUploadButton({ onPdfUpload }) {
 
     return (
         <div className="flex items-center gap-2">
-            <label className="px-3 py-1 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm cursor-pointer">
+            <label className="px-3 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm cursor-pointer transition-all shadow-md hover:shadow-lg">
                 Upload PDF
                 <input ref={fileInputRef} type="file" accept="application/pdf" className="hidden" onChange={handleUpload} />
             </label>
@@ -249,7 +250,7 @@ function DarkModeButton() {
     }
 
     return (
-        <button className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm" onClick={handleClick}>
+        <button className="px-3 py-1 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-all duration-200 text-sm shadow-md hover:shadow-lg" onClick={handleClick}>
             {editor.user.getIsDarkMode() ? '☀️ Light' : '🌙 Dark'}
         </button>
     )
@@ -296,7 +297,7 @@ function ExportCanvasButton({ onOpenModal, transcription }) {
                 style={{ minWidth: '120px' }}
             />
             <button
-                className="px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 text-sm"
+                className="px-3 py-1 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-all duration-200 text-sm shadow-md hover:shadow-lg"
                 onClick={handleExportCanvas}
             >
                 Save Page
@@ -338,6 +339,54 @@ const TeacherPage = () => {
         audio: null
     });
     const [transcription, setTranscription] = useState('');
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [currentTopic, setCurrentTopic] = useState(null);
+    const [currentSubtopic, setCurrentSubtopic] = useState(null);
+    const editorRef = useRef(null);
+
+    // Dummy High School Physics Topics
+    const [topics] = useState([
+        {
+            id: 'mechanics',
+            name: 'Mechanics',
+            subtopics: [
+                { id: 'kinematics', name: 'Kinematics', canvasY: 0 },
+                { id: 'newtons-laws', name: "Newton's Laws", canvasY: 1000 },
+                { id: 'work-energy', name: 'Work & Energy', canvasY: 2000 },
+                { id: 'momentum', name: 'Momentum', canvasY: 3000 },
+            ]
+        },
+        {
+            id: 'electricity',
+            name: 'Electricity & Magnetism',
+            subtopics: [
+                { id: 'electric-charge', name: 'Electric Charge', canvasY: 4000 },
+                { id: 'electric-field', name: 'Electric Field', canvasY: 5000 },
+                { id: 'circuits', name: 'Circuits', canvasY: 6000 },
+                { id: 'magnetism', name: 'Magnetism', canvasY: 7000 },
+            ]
+        },
+        {
+            id: 'waves',
+            name: 'Waves & Optics',
+            subtopics: [
+                { id: 'wave-properties', name: 'Wave Properties', canvasY: 8000 },
+                { id: 'sound', name: 'Sound', canvasY: 9000 },
+                { id: 'light', name: 'Light & Reflection', canvasY: 10000 },
+                { id: 'refraction', name: 'Refraction', canvasY: 11000 },
+            ]
+        },
+        {
+            id: 'thermodynamics',
+            name: 'Thermodynamics',
+            subtopics: [
+                { id: 'temperature', name: 'Temperature & Heat', canvasY: 12000 },
+                { id: 'thermal-expansion', name: 'Thermal Expansion', canvasY: 13000 },
+                { id: 'heat-transfer', name: 'Heat Transfer', canvasY: 14000 },
+                { id: 'gas-laws', name: 'Gas Laws', canvasY: 15000 },
+            ]
+        },
+    ]);
 
     const handlePdfUpload = (pdfFile) => {
         setAttachments(prev => ({ ...prev, pdf: pdfFile }));
@@ -370,23 +419,56 @@ const TeacherPage = () => {
         setTranscription('');
     };
 
+    const handleSubtopicClick = (topicId, subtopicId, canvasY) => {
+        setCurrentTopic(topicId);
+        setCurrentSubtopic(subtopicId);
+
+        // Scroll canvas to the specified Y position
+        if (editorRef.current) {
+            const editor = editorRef.current;
+            const viewport = editor.getViewportPageBounds();
+            editor.setCamera({ x: viewport.x, y: canvasY, z: viewport.z }, { animation: { duration: 500 } });
+        }
+    };
+
+    const handleEditorMount = (editor) => {
+        editorRef.current = editor;
+    };
+
     return (
-        <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-950 to-slate-900 fixed top-0 left-0 right-0 bottom-0 flex flex-col">
-            <Navbar />
-            <div className="flex-1 m-4 rounded-2xl shadow-2xl overflow-hidden bg-white">
-                <Tldraw
-                    components={createComponents(openModal, handlePdfUpload, handleRecordingComplete, handleTranscriptionUpdate, transcription)}
-                    persistenceKey="teacher-page"
-                    autoFocus
+        <div className="h-screen bg-[#0F0F1A] flex flex-col overflow-hidden">
+            <Navbar
+                onToggleTopicSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+                isTopicSidebarOpen={isSidebarOpen}
+            />
+
+            <main className="flex-1 flex p-4 gap-4 overflow-hidden relative">
+                {/* Topic Sidebar */}
+                <TopicSidebar
+                    topics={topics}
+                    currentSubtopic={currentSubtopic}
+                    onSubtopicClick={handleSubtopicClick}
+                    isOpen={isSidebarOpen}
                 />
-                <GroupSelectorModal
-                    isOpen={isModalOpen}
-                    onClose={closeModal}
-                    pageData={pageData}
-                    attachments={attachments}
-                    transcription={transcription} 
-                />
-            </div>
+
+                {/* Canvas Area */}
+                <div className="flex-1 rounded-2xl shadow-2xl overflow-hidden bg-white relative">
+                    <Tldraw
+                        components={createComponents(openModal, handlePdfUpload, handleRecordingComplete, handleTranscriptionUpdate, transcription)}
+                        persistenceKey="teacher-page"
+                        autoFocus
+                        onMount={handleEditorMount}
+                    />
+
+                    <GroupSelectorModal
+                        isOpen={isModalOpen}
+                        onClose={closeModal}
+                        pageData={pageData}
+                        attachments={attachments}
+                        transcription={transcription}
+                    />
+                </div>
+            </main>
         </div>
     )
 }

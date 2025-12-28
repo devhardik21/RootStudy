@@ -43,7 +43,7 @@ export default function GroupsPage() {
 
     return (
 
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex items-center justify-center p-4">
+        <div className="min-h-screen  bg-gradient-to-br from-[#1E1E32] to-[#3C3B65] flex items-center justify-center p-4">
             <div className="w-full max-w-7xl h-[90vh] bg-slate-800/50 backdrop-blur-sm rounded-lg shadow-2xl overflow-hidden flex">
 
                 {/* Left Sidebar - Groups List */}
