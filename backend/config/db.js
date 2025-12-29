@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 const DBNAME = "ROOTVESTORS"
 const ConnectDB = async () =>{
     try {
+        // Database name is now in the MONGO_URI
+        // const ConnectionInstance = await mongoose.connect(`${process.env.MONGO_URI}`)
         const ConnectionInstance = await mongoose.connect(`${process.env.MONGO_URI}/${DBNAME}`)
         console.log("DB connected successfully");
         

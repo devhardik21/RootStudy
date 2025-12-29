@@ -4,6 +4,7 @@ import 'tldraw/tldraw.css'
 import Navbar from '../components/Navbar'
 import GroupSelectorModal from '../components/Modal'
 import { TopicSidebar } from '../components/TopicSidebar'
+import PdfSidebar from '../components/PdfSidebar'
 
 // VoiceRecorderButton with Web Speech API transcription
 function VoiceRecorderButton({ onRecordingComplete, onTranscriptionUpdate }) {
@@ -387,6 +388,7 @@ const TeacherPage = () => {
             ]
         },
     ]);
+    // const editorRef = useRef(null);
 
     const handlePdfUpload = (pdfFile) => {
         setAttachments(prev => ({ ...prev, pdf: pdfFile }));
@@ -394,6 +396,72 @@ const TeacherPage = () => {
 
     const handleRecordingComplete = (audioFile) => {
         setAttachments(prev => ({ ...prev, audio: audioFile }));
+    };
+
+    /**
+     * Handle PDF page drop from sidebar
+     * Adds the page as an image shape on the canvas
+     */
+    const handlePdfPageDrop = (pageData) => {
+        if (!editorRef.current) return;
+
+        const editor = editorRef.current;
+
+        try {
+            // Create asset for the PDF page image
+            const assetId = AssetRecordType.createId();
+            
+            
+            editor.createAssets([{
+                id: assetId,
+                type: 'image',
+                typeName: 'asset',
+                props: {
+                    name: `page-${pageData.pageNumber}.png`,
+                    src: pageData.imageUrl,
+                    w: pageData.dimensions.width,  // Use full high-res dimensions
+                    h: pageData.dimensions.height,  // Use full high-res dimensions
+                    mimeType: 'image/png',
+                    isAnimated: false,
+                },
+                meta: {
+                    pdfPage: pageData.pageNumber
+                },
+            }]);
+
+            // Calculate scaled dimensions to fit canvas nicely
+            const maxWidth = 600;
+            const maxHeight = 800;
+            let width = pageData.dimensions.width;
+            let height = pageData.dimensions.height;
+            
+            const widthRatio = maxWidth / width;
+            const heightRatio = maxHeight / height;
+            const scale = Math.min(widthRatio, heightRatio, 1);
+            
+            width *= scale;
+            height *= scale;
+
+            // Create image shape at center or specified position
+            const position = pageData.position || {
+                x: Math.random() * 200 + 100,
+                y: Math.random() * 200 + 100
+            };
+
+            editor.createShape({
+                type: 'image',
+                x: position.x,
+                y: position.y,
+                props: { 
+                    assetId: assetId, 
+                    w: width, 
+                    h: height 
+                }
+            });
+
+        } catch {
+            alert('Failed to add PDF page to canvas');
+        }
     };
 
     const handleTranscriptionUpdate = (text) => {
@@ -435,6 +503,81 @@ const TeacherPage = () => {
         editorRef.current = editor;
     };
 
+    // Handle drop events on canvas for PDF pages
+    const handleCanvasDrop = React.useCallback((e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const pdfPageData = e.dataTransfer.getData('application/pdf-page');
+
+        if (pdfPageData) {
+            const { pageNumber } = JSON.parse(pdfPageData);
+
+            // Get canvas-relative coordinates
+            const editor = editorRef.current;
+            if (!editor) return;
+
+            // Convert screen coordinates to canvas coordinates
+            const point = editor.screenToPage({ x: e.clientX, y: e.clientY });
+
+            // Trigger the sidebar's high-res render via ref
+            if (pdfSidebarRef.current) {
+                pdfSidebarRef.current.renderAndDropPage(pageNumber, point);
+            }
+        }
+    }, []);
+
+    const handleCanvasDragOver = (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+        // Log occasionally to avoid spam
+        if (Math.random() < 0.01) {
+            console.log('Canvas drag over');
+        }
+    };
+
+    const pdfSidebarRef = useRef(null);
+
+    // Add drop listeners to window/document for debugging and handling
+    React.useEffect(() => {
+        
+        const logDragEnter = () => {};
+        const logDragOver = () => {};
+        const logDrop = () => {};
+
+        // Document-level drop handler to catch drops on tldraw canvas
+        const handleDocumentDrop = (e) => {
+            const pdfPageData = e.dataTransfer.getData('application/pdf-page');
+            
+            if (pdfPageData) {
+                e.preventDefault();
+                e.stopPropagation();
+                handleCanvasDrop(e);
+            }
+        };
+
+        // CRITICAL: Prevent default on ALL dragover events to enable dropping
+        const handleDocumentDragOver = (e) => {
+            e.preventDefault(); // Always prevent default
+            e.stopPropagation();
+            e.dataTransfer.dropEffect = 'copy';
+        };
+
+        document.addEventListener('dragenter', logDragEnter);
+        document.addEventListener('dragover', logDragOver);
+        document.addEventListener('dragover', handleDocumentDragOver, true); // Use capture phase
+        document.addEventListener('drop', logDrop, true); // Use capture phase
+        document.addEventListener('drop', handleDocumentDrop, true); // Use capture phase
+
+        return () => {
+            document.removeEventListener('dragenter', logDragEnter);
+            document.removeEventListener('dragover', logDragOver);
+            document.removeEventListener('dragover', handleDocumentDragOver, true);
+            document.removeEventListener('drop', logDrop, true);
+            document.removeEventListener('drop', handleDocumentDrop, true);
+        };
+    }, [handleCanvasDrop]); // Add handleCanvasDrop to dependencies
+
     return (
         <div className="h-screen bg-[#0F0F1A] flex flex-col overflow-hidden">
             <Navbar
@@ -452,9 +595,18 @@ const TeacherPage = () => {
                 />
 
                 {/* Canvas Area */}
-                <div className="flex-1 rounded-2xl shadow-2xl overflow-hidden bg-white relative">
+                <div 
+                className="flex-1 rounded-2xl shadow-2xl overflow-hidden bg-white relative"
+                onDrop={handleCanvasDrop}
+                onDragOver={handleCanvasDragOver}
+                onDragEnter={(e) => {
+                    e.preventDefault();
+                    console.log('Canvas container drag enter');
+                }}
+            >
                     <Tldraw
-                        components={createComponents(openModal, handlePdfUpload, handleRecordingComplete, handleTranscriptionUpdate, transcription)}
+                        // onMount={(editor) => { editorRef.current = editor; }}
+                    components={createComponents(openModal, handlePdfUpload, handleRecordingComplete, handleTranscriptionUpdate, transcription)}
                         persistenceKey="teacher-page"
                         autoFocus
                         onMount={handleEditorMount}
@@ -467,7 +619,12 @@ const TeacherPage = () => {
                         attachments={attachments}
                         transcription={transcription}
                     />
-                </div>
+                    <PdfSidebar 
+                    ref={pdfSidebarRef}
+                    onPageDrop={handlePdfPageDrop}
+                    editor={editorRef.current}
+                />
+            </div>
             </main>
         </div>
     )
