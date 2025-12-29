@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Upload, FileText } from 'lucide-react';
 
 /**
  * PdfPageThumbnail Component
@@ -32,7 +33,7 @@ const PdfPageThumbnail = ({
         const observer = new IntersectionObserver(
             async (entries) => {
                 const [entry] = entries;
-                
+
                 // Guard: Check pdfReady again before rendering
                 if (entry.isIntersecting && !thumbnail && !hasAttemptedLoad.current && pdfReady) {
                     hasAttemptedLoad.current = true;
@@ -90,76 +91,80 @@ const PdfPageThumbnail = ({
             ref={thumbnailRef}
             className={`
                 relative group cursor-grab active:cursor-grabbing
-                border-2 rounded-lg overflow-hidden
-                transition-all duration-200 ease-in-out
-                bg-gray-50
-                ${isSelected 
-                    ? 'border-blue-500 shadow-lg scale-105' 
-                    : 'border-gray-300 hover:border-blue-400 hover:shadow-md'
+                border-2 rounded-2xl overflow-hidden
+                transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
+                bg-white/5 backdrop-blur-sm
+                ${isSelected
+                    ? 'border-indigo-500 shadow-[0_0_20px_-5px_rgba(99,102,241,0.5)] scale-[1.02]'
+                    : 'border-white/10 hover:border-white/20 hover:bg-white/10 hover:shadow-xl'
                 }
             `}
-            style={{ minHeight: '150px', backgroundColor: '#ffffff' }}
+            style={{ minHeight: '180px' }}
             draggable={!!thumbnail}
             onDragStart={handleDragStart}
             onClick={handleClick}
         >
             {/* Loading State */}
             {loading && !thumbnail && (
-                <div className="w-full h-32 bg-gray-100 flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#1A1A2E]/50">
+                    <div className="w-8 h-8 border-2 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin mb-2"></div>
+                    <span className="text-[10px] text-indigo-300 font-bold uppercase tracking-widest">Loading</span>
                 </div>
             )}
 
             {/* Error State */}
             {error && (
-                <div className="w-full h-32 bg-red-50 flex flex-col items-center justify-center p-2">
-                    <svg className="w-8 h-8 text-red-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className="text-xs text-red-600 text-center">{error}</span>
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-red-500/5">
+                    <div className="p-2 bg-red-500/20 rounded-xl mb-2">
+                        <X size={20} className="text-red-400" />
+                    </div>
+                    <span className="text-[10px] text-red-400 font-bold text-center uppercase tracking-widest leading-tight">{error}</span>
                 </div>
             )}
 
             {/* Thumbnail Image */}
-            {thumbnail && (
-                <>
+            {thumbnail ? (
+                <div className="relative w-full h-full flex items-center justify-center p-2">
                     <img
                         src={thumbnail}
                         alt={`Page ${pageNumber}`}
-                        className="w-full h-auto object-contain block"
+                        className="w-full h-auto max-h-full object-contain rounded-lg shadow-2xl transition-transform duration-500 group-hover:scale-[1.05]"
                         draggable={false}
-                        style={{ 
-                            backgroundColor: '#ffffff', 
-                            minHeight: '120px',
-                            display: 'block',
-                            position: 'relative',
-                            zIndex: 1
-                        }}
                     />
-                    
+
                     {/* Hover Overlay */}
-                    <div className="absolute inset-0 bg-transparent group-hover:bg-blue-500 group-hover:bg-opacity-5 transition-all duration-200 flex items-center justify-center pointer-events-none" style={{ zIndex: 2 }}>
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                            <svg className="w-12 h-12 text-blue-600 drop-shadow-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
-                            </svg>
+                    <div className="absolute inset-0 bg-indigo-600/0 group-hover:bg-indigo-600/10 transition-all duration-300 flex items-center justify-center pointer-events-none">
+                        <div className="opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300">
+                            <div className="p-3 bg-indigo-600 rounded-2xl shadow-2xl shadow-indigo-500/40">
+                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+                                </svg>
+                            </div>
                         </div>
                     </div>
-                </>
+                </div>
+            ) : !loading && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-12 h-12 bg-white/5 rounded-2xl border border-white/5 flex items-center justify-center">
+                        <FileText size={24} className="text-slate-600" />
+                    </div>
+                </div>
             )}
 
             {/* Page Number Badge */}
-            <div className="absolute top-2 left-2 bg-white bg-opacity-90 rounded-md px-2 py-1 shadow-sm">
-                <span className="text-xs font-semibold text-gray-700">
-                    {pageNumber}
-                </span>
+            <div className="absolute top-3 left-3 z-10">
+                <div className="px-2.5 py-1 bg-[#1A1A2E]/80 backdrop-blur-md border border-white/10 rounded-lg shadow-lg">
+                    <span className="text-[10px] font-black text-white tracking-tighter">
+                        PG. {pageNumber.toString().padStart(2, '0')}
+                    </span>
+                </div>
             </div>
 
             {/* Drag Hint */}
             {thumbnail && (
-                <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <div className="bg-blue-500 bg-opacity-90 rounded-md px-2 py-1 shadow-sm">
-                        <span className="text-xs font-medium text-white">
+                <div className="absolute bottom-3 left-3 right-3 z-10 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                    <div className="py-1.5 bg-indigo-600 rounded-xl shadow-xl shadow-indigo-500/20 text-center border border-indigo-400/20">
+                        <span className="text-[9px] font-black text-white uppercase tracking-[0.2em]">
                             Drag to canvas
                         </span>
                     </div>

@@ -47,7 +47,7 @@ const PdfSidebar = forwardRef(({ onPageDrop, editor }, ref) => {
             // 1. Upload to backend FIRST
             const formData = new FormData();
             formData.append('pdf', file);
-            
+
             const response = await fetch(`${LOCAL_URL}/api/pdf/upload`, {
                 method: 'POST',
                 body: formData
@@ -67,7 +67,7 @@ const PdfSidebar = forwardRef(({ onPageDrop, editor }, ref) => {
 
             // 2. Load PDF for rendering only AFTER backend succeeds
             const result = await loadPdf(file);
-            
+
             if (!result.success) {
                 alert(`Failed to load PDF for rendering: ${result.error}`);
                 return;
@@ -92,7 +92,7 @@ const PdfSidebar = forwardRef(({ onPageDrop, editor }, ref) => {
      */
     const handlePageDragStart = useCallback((e, pageNumber) => {
         setSelectedPage(pageNumber);
-        
+
         // Store page data for drop event
         e.dataTransfer.effectAllowed = 'copy';
         const data = JSON.stringify({
@@ -100,7 +100,7 @@ const PdfSidebar = forwardRef(({ onPageDrop, editor }, ref) => {
             fileName: pdfMetadata?.fileName
         });
         e.dataTransfer.setData('application/pdf-page', data);
-        
+
         // Set a custom drag image (optional - makes it clear we're dragging)
         const dragImg = document.createElement('div');
         dragImg.textContent = `Page ${pageNumber}`;
@@ -122,7 +122,7 @@ const PdfSidebar = forwardRef(({ onPageDrop, editor }, ref) => {
         try {
             // Render high-resolution version (4x scale for ultra-sharp quality)
             const canvas = await renderHighRes(pageNumber);
-            
+
             // Convert canvas to data URL (base64 PNG) for tldraw
             const dataUrl = canvas.toDataURL('image/png', 1.0);
 
@@ -180,62 +180,79 @@ const PdfSidebar = forwardRef(({ onPageDrop, editor }, ref) => {
                 onClick={toggleSidebar}
                 className={`
                     fixed top-1/2 -translate-y-1/2 z-[9999]
-                    transition-all duration-300 ease-in-out
-                    bg-blue-500 hover:bg-blue-600 text-white
-                    rounded-l-lg shadow-lg p-3
-                    ${isOpen ? 'right-96' : 'right-0'}
+                    transition-all duration-500 ease-in-out
+                    bg-indigo-600 hover:bg-indigo-500 text-white
+                    rounded-l-2xl shadow-2xl p-4 group
+                    ${isOpen ? 'right-[400px]' : 'right-0'}
                 `}
                 title={isOpen ? 'Close PDF Sidebar' : 'Open PDF Sidebar'}
             >
-                {isOpen ? <ChevronRight size={24} /> : <ChevronLeft size={24} />}
+                <div className="relative">
+                    {isOpen ? <ChevronRight size={24} className="group-hover:translate-x-0.5 transition-transform" /> : <ChevronLeft size={24} className="group-hover:-translate-x-0.5 transition-transform" />}
+                    {!isOpen && pdfFile && (
+                        <div className="absolute -top-1 -left-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-indigo-600 animate-pulse" />
+                    )}
+                </div>
             </button>
 
             {/* Sidebar Panel */}
             <div
                 className={`
-                    fixed top-0 right-0 h-screen w-96 bg-white shadow-2xl z-[9998]
-                    transform transition-transform duration-300 ease-in-out
-                    ${isOpen ? 'translate-x-0' : 'translate-x-full'}
-                    flex flex-col
+                    fixed top-4 bottom-4 right-4 w-[400px] 
+                    bg-[#1A1A2E]/80 backdrop-blur-2xl border border-white/10 
+                    rounded-3xl shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] z-[9998]
+                    transform transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
+                    ${isOpen ? 'translate-x-0 opacity-100' : 'translate-x-[110%] opacity-0'}
+                    flex flex-col overflow-hidden
                 `}
             >
                 {/* Header */}
-                <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 shadow-md">
+                <div className="p-6 border-b border-white/10 bg-gradient-to-br from-indigo-600/20 to-violet-600/20">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                            <FileText size={24} />
-                            <h2 className="text-lg font-bold">PDF Pages</h2>
+                        <div className="flex items-center gap-3">
+                            <div className="p-2.5 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-500/30">
+                                <FileText size={22} className="text-white" />
+                            </div>
+                            <div>
+                                <h2 className="text-white font-bold text-lg tracking-tight">PDF Resources</h2>
+                                <p className="text-indigo-300 text-xs font-medium uppercase tracking-wider">
+                                    {pdfFile ? 'Select Pages' : 'Upload Document'}
+                                </p>
+                            </div>
                         </div>
                         {pdfFile && (
                             <button
                                 onClick={handleReset}
-                                className="hover:bg-blue-700 rounded-full p-1 transition-colors"
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-all duration-200 border border-white/5 hover:border-red-500/20"
                                 title="Clear PDF"
                             >
-                                <X size={20} />
+                                <X size={18} />
                             </button>
                         )}
                     </div>
                 </div>
 
                 {/* Content Area */}
-                <div className="flex-1 overflow-y-auto p-4">
+                <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
                     {/* Upload Section */}
                     {!pdfFile && (
-                        <div className="space-y-4">
-                            <div className="text-center p-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 transition-colors">
-                                <Upload className="mx-auto mb-4 text-gray-400" size={48} />
-                                <p className="text-gray-600 mb-4">
-                                    Upload a PDF to view and drag pages to canvas
+                        <div className="h-full flex flex-col items-center justify-center space-y-6">
+                            <div
+                                onClick={() => fileInputRef.current?.click()}
+                                className="w-full aspect-square max-w-[280px] flex flex-col items-center justify-center p-8 border-2 border-dashed border-white/10 rounded-3xl hover:border-indigo-500/50 hover:bg-white/5 transition-all duration-300 cursor-pointer group"
+                            >
+                                <div className="w-20 h-20 bg-indigo-600/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                                    <Upload className="text-indigo-400" size={40} />
+                                </div>
+                                <h3 className="text-white font-semibold text-lg mb-2">Drop your PDF here</h3>
+                                <p className="text-slate-400 text-sm text-center mb-6">
+                                    Upload a PDF to view and drag pages to your canvas
                                 </p>
-                                <button
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium transition-colors"
-                                >
-                                    Choose PDF File
-                                </button>
-                                <p className="text-xs text-gray-500 mt-2">
-                                    Max 25MB, up to 50 pages
+                                <div className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium transition-all shadow-lg shadow-indigo-500/20">
+                                    Browse Files
+                                </div>
+                                <p className="text-[10px] text-slate-500 mt-6 font-bold uppercase tracking-widest">
+                                    Max 25MB • Up to 50 pages
                                 </p>
                             </div>
 
@@ -251,39 +268,59 @@ const PdfSidebar = forwardRef(({ onPageDrop, editor }, ref) => {
 
                     {/* Loading State */}
                     {loading && (
-                        <div className="flex flex-col items-center justify-center py-12">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
-                            <p className="text-gray-600">Loading PDF...</p>
+                        <div className="h-full flex flex-col items-center justify-center py-12">
+                            <div className="relative w-16 h-16 mb-6">
+                                <div className="absolute inset-0 rounded-full border-4 border-indigo-500/20"></div>
+                                <div className="absolute inset-0 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin"></div>
+                            </div>
+                            <p className="text-indigo-300 font-medium animate-pulse">Processing PDF...</p>
                         </div>
                     )}
 
                     {/* Error State */}
                     {error && (
-                        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                            <p className="text-red-600 text-sm">{error}</p>
+                        <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 flex items-start gap-3">
+                            <div className="p-1.5 bg-red-500/20 rounded-lg">
+                                <X size={16} className="text-red-400" />
+                            </div>
+                            <p className="text-red-400 text-sm font-medium leading-relaxed">{error}</p>
                         </div>
                     )}
 
                     {/* PDF Metadata */}
                     {pdfMetadata && !loading && (
-                        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-                            <p className="text-sm font-medium text-gray-700 truncate" title={pdfMetadata.fileName}>
-                                {pdfMetadata.fileName}
-                            </p>
-                            <div className="flex justify-between text-xs text-gray-500 mt-1">
-                                <span>{pdfMetadata.pageCount || pageCount} pages</span>
-                                <span>{formatFileSize(pdfMetadata.fileSize)}</span>
+                        <div className="mb-6 p-4 bg-white/5 border border-white/10 rounded-2xl">
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className="p-2 bg-emerald-500/10 rounded-lg">
+                                    <FileText size={18} className="text-emerald-400" />
+                                </div>
+                                <p className="text-sm font-bold text-white truncate flex-1" title={pdfMetadata.fileName}>
+                                    {pdfMetadata.fileName}
+                                </p>
+                            </div>
+                            <div className="flex justify-between items-center text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                                <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10">
+                                    {pdfMetadata.pageCount || pageCount} pages
+                                </span>
+                                <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10">
+                                    {formatFileSize(pdfMetadata.fileSize)}
+                                </span>
                             </div>
                         </div>
                     )}
 
                     {/* Page Thumbnails Grid */}
                     {pdfFile && pdfMetadata && pdfMetadata.pageCount > 0 && !loading && (
-                        <div className="space-y-3">
-                            <p className="text-sm text-gray-600 font-medium">
-                                Drag any page to the canvas
-                            </p>
-                            <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between px-1">
+                                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+                                    Page Thumbnails
+                                </p>
+                                <span className="text-[10px] text-indigo-400 font-bold bg-indigo-400/10 px-2 py-0.5 rounded-full">
+                                    Drag to Canvas
+                                </span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
                                 {Array.from({ length: pdfMetadata.pageCount }, (_, i) => i + 1).map((pageNum) => (
                                     <PdfPageThumbnail
                                         key={pageNum}
@@ -301,19 +338,20 @@ const PdfSidebar = forwardRef(({ onPageDrop, editor }, ref) => {
 
                     {/* Uploading Indicator */}
                     {uploadingPage && (
-                        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            <span className="text-sm">Processing page {uploadingPage}...</span>
+                        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center space-x-3 z-[10000] animate-in slide-in-from-bottom-4">
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                            <span className="text-sm font-bold tracking-tight">Adding page {uploadingPage} to canvas...</span>
                         </div>
                     )}
                 </div>
 
                 {/* Footer Instructions */}
                 {pdfFile && (
-                    <div className="border-t border-gray-200 p-3 bg-gray-50">
-                        <p className="text-xs text-gray-600 text-center">
-                            💡 Drag a page thumbnail onto the canvas to add it as an image
-                        </p>
+                    <div className="p-4 border-t border-white/10 bg-white/5">
+                        <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></div>
+                            <span>Interactive PDF Viewer</span>
+                        </div>
                     </div>
                 )}
             </div>

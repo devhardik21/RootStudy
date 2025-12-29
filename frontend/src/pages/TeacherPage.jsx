@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react'
 import { Tldraw, AssetRecordType, useEditor, getSnapshot } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { Upload, X, Send } from 'lucide-react'
+
 import Navbar from '../components/Navbar'
 import GroupSelectorModal from '../components/Modal'
 import { TopicSidebar } from '../components/TopicSidebar'
@@ -158,9 +160,9 @@ function VoiceRecorderButton({ onRecordingComplete, onTranscriptionUpdate }) {
     };
 
     return (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3 bg-white/5 backdrop-blur-md p-1.5 rounded-2xl border border-white/10 shadow-xl">
             <button
-                className={`px-3 py-1 rounded-lg text-white text-sm transition-all shadow-md hover:shadow-lg ${recording ? "bg-red-600 hover:bg-red-700" : "bg-emerald-600 hover:bg-emerald-700"}`}
+                className={`flex items-center gap-2 px-5 py-2 rounded-xl text-white text-sm font-bold transition-all duration-300 shadow-lg ${recording ? "bg-red-500 hover:bg-red-600 shadow-red-500/20 animate-pulse" : "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20"}`}
                 onClick={recording ? stopRecording : startRecording}
             >
                 {recording ? "Stop Recording" : "Record Voice"}
@@ -224,8 +226,9 @@ function PdfUploadButton({ onPdfUpload }) {
     };
 
     return (
-        <div className="flex items-center gap-2">
-            <label className="px-3 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm cursor-pointer transition-all shadow-md hover:shadow-lg">
+        <div className="flex items-center gap-3 bg-white/5 backdrop-blur-md p-1.5 rounded-2xl border border-white/10 shadow-xl">
+            <label className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold cursor-pointer transition-all duration-300 shadow-lg shadow-indigo-500/20 group">
+                <Upload size={16} className="group-hover:-translate-y-0.5 transition-transform" />
                 Upload PDF
                 <input ref={fileInputRef} type="file" accept="application/pdf" className="hidden" onChange={handleUpload} />
             </label>
@@ -251,7 +254,7 @@ function DarkModeButton() {
     }
 
     return (
-        <button className="px-3 py-1 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-all duration-200 text-sm shadow-md hover:shadow-lg" onClick={handleClick}>
+        <button className="px-4 py-2 bg-white/10 backdrop-blur-md text-white rounded-xl hover:bg-white/20 transition-all duration-300 text-sm font-bold shadow-xl border border-white/10 flex items-center gap-2" onClick={handleClick}>
             {editor.user.getIsDarkMode() ? '☀️ Light' : '🌙 Dark'}
         </button>
     )
@@ -298,9 +301,10 @@ function ExportCanvasButton({ onOpenModal, transcription }) {
                 style={{ minWidth: '120px' }}
             />
             <button
-                className="px-3 py-1 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-all duration-200 text-sm shadow-md hover:shadow-lg"
+                className="px-5 py-2 bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded-xl hover:scale-105 transition-all duration-300 text-sm font-bold shadow-xl shadow-teal-500/20 flex items-center gap-2"
                 onClick={handleExportCanvas}
             >
+                <Send size={16} />
                 Save Page
             </button>
         </div>
@@ -410,8 +414,8 @@ const TeacherPage = () => {
         try {
             // Create asset for the PDF page image
             const assetId = AssetRecordType.createId();
-            
-            
+
+
             editor.createAssets([{
                 id: assetId,
                 type: 'image',
@@ -434,11 +438,11 @@ const TeacherPage = () => {
             const maxHeight = 800;
             let width = pageData.dimensions.width;
             let height = pageData.dimensions.height;
-            
+
             const widthRatio = maxWidth / width;
             const heightRatio = maxHeight / height;
             const scale = Math.min(widthRatio, heightRatio, 1);
-            
+
             width *= scale;
             height *= scale;
 
@@ -452,10 +456,10 @@ const TeacherPage = () => {
                 type: 'image',
                 x: position.x,
                 y: position.y,
-                props: { 
-                    assetId: assetId, 
-                    w: width, 
-                    h: height 
+                props: {
+                    assetId: assetId,
+                    w: width,
+                    h: height
                 }
             });
 
@@ -540,15 +544,15 @@ const TeacherPage = () => {
 
     // Add drop listeners to window/document for debugging and handling
     React.useEffect(() => {
-        
-        const logDragEnter = () => {};
-        const logDragOver = () => {};
-        const logDrop = () => {};
+
+        const logDragEnter = () => { };
+        const logDragOver = () => { };
+        const logDrop = () => { };
 
         // Document-level drop handler to catch drops on tldraw canvas
         const handleDocumentDrop = (e) => {
             const pdfPageData = e.dataTransfer.getData('application/pdf-page');
-            
+
             if (pdfPageData) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -595,18 +599,18 @@ const TeacherPage = () => {
                 />
 
                 {/* Canvas Area */}
-                <div 
-                className="flex-1 rounded-2xl shadow-2xl overflow-hidden bg-white relative"
-                onDrop={handleCanvasDrop}
-                onDragOver={handleCanvasDragOver}
-                onDragEnter={(e) => {
-                    e.preventDefault();
-                    console.log('Canvas container drag enter');
-                }}
-            >
+                <div
+                    className="flex-1 rounded-2xl shadow-2xl overflow-hidden bg-white relative"
+                    onDrop={handleCanvasDrop}
+                    onDragOver={handleCanvasDragOver}
+                    onDragEnter={(e) => {
+                        e.preventDefault();
+                        console.log('Canvas container drag enter');
+                    }}
+                >
                     <Tldraw
                         // onMount={(editor) => { editorRef.current = editor; }}
-                    components={createComponents(openModal, handlePdfUpload, handleRecordingComplete, handleTranscriptionUpdate, transcription)}
+                        components={createComponents(openModal, handlePdfUpload, handleRecordingComplete, handleTranscriptionUpdate, transcription)}
                         persistenceKey="teacher-page"
                         autoFocus
                         onMount={handleEditorMount}
@@ -619,12 +623,12 @@ const TeacherPage = () => {
                         attachments={attachments}
                         transcription={transcription}
                     />
-                    <PdfSidebar 
-                    ref={pdfSidebarRef}
-                    onPageDrop={handlePdfPageDrop}
-                    editor={editorRef.current}
-                />
-            </div>
+                    <PdfSidebar
+                        ref={pdfSidebarRef}
+                        onPageDrop={handlePdfPageDrop}
+                        editor={editorRef.current}
+                    />
+                </div>
             </main>
         </div>
     )
